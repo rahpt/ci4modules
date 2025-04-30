@@ -1,0 +1,28 @@
+{
+    "name": "rahpt/ci4modules",
+    "description": "Easy Modules in Codeigniter 4",
+    "type": "codeigniter4-module",
+    "license": "mit",
+    "autoload": {
+        "psr-4": {
+            "Rahpt\\Ci4Modules\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "José Proença",
+            "email": "ci4modules@rah.pt"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "codeigniter4/framework": "^4.3"
+    },
+    "extra": {
+        "codeigniter4": {
+            "discover": "auto"
+        }
+    },    
+    "keywords": ["codeigniter4", "modules"],
+    "minimum-stability": "stable"    
+}
