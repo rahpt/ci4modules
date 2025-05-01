@@ -58,6 +58,7 @@ class ModuleHelper {
     }
 
     // CONTROLLERS
+    // Main Controller
     public static function CreateController(string $module, string $filePath): void {
 
         $Module = ucfirst($module);

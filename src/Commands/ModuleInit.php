@@ -16,7 +16,6 @@ class ModuleInit extends BaseCommand {
     protected $usage = 'module:init <NomeModulo> [Label]';
 
     public function run(array $params) {
-        dd($params);
         // Label igual ao Modulo
         if (count($params) == 1) {
             $params[] = $params[0];
@@ -51,13 +50,21 @@ class ModuleInit extends BaseCommand {
         /*
           TemplateHelper::updateModulesJson($module, $label);
 
-          // 4) Actualiza modules.json
-          ModuleRegistry::put($module, [
-          'active' => true,
-          'version' => '0.1.0',
-          'entities' => ModuleRegistry::discoverEntities($name),
-          ]);
          */
+
+         // 4. Actualiza modules.json  
+        
+        $data = [
+            'active'      => true,
+            'label'       => $label,
+            'path'        => "app/Modules/{$modulePath}",
+            'routePrefix' => strtolower($module),
+            'version'     => '0.1.0',
+            'createdAt'   => date(DATE_ATOM),
+        ];
+ 
+        // 2) gravar/actualizar modules.json
+        ModuleRegistry::put($module, $data);
 
         CLI::write("✔ Módulo {$module} criado com sucesso!", 'green');
     }
