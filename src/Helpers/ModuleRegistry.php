@@ -59,21 +59,19 @@ foreach (service('modules') as $name => $conf) {
 }
 ?>
  */
-
 class ModuleRegistry {
-
-    private const FILE = WRITEPATH . 'modules.json';
 
     /**
      * Load modules.json
      * 
      * @return array<string, array<string, mixed>>
      */
-    public static function all(): array {
-        if (!is_file(self::FILE)) {
+    public static function all(string $module): array {
+        $fileName = APPPATH . "Modules/{$module}/modules.json";
+        if (!is_file($fileName)) {
             return [];
         }
-        return json_decode(file_get_contents(self::FILE), true, 512, JSON_THROW_ON_ERROR);
+        return json_decode(file_get_contents($fileName), true, 512, JSON_THROW_ON_ERROR);
     }
 
     /**
@@ -85,9 +83,10 @@ class ModuleRegistry {
      * @throws JsonException
      * @throws Exception
      */
-    public static function put(string $name, array $data): void {
-        $all = self::all();
-        $all[$name] = array_merge($all[$name] ?? [], $data);
+    public static function put(string $module, array $data): void {
+        $fileName = APPPATH . "Modules/{$module}/modules.json";
+        $all = self::all($module);
+        $all[$module] = array_merge($all[$module] ?? [], $data);
 
         $json = json_encode($all, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
         if ($json === false) {
@@ -95,7 +94,7 @@ class ModuleRegistry {
         }
 
         // flock para evitar corrupção em requests concorrentes
-        $fp = fopen(self::FILE, 'cb');
+        $fp = fopen($fileName, 'cb');
         if (!$fp || !flock($fp, LOCK_EX)) {
             throw new Exception('Não foi possível bloquear modules.json');
         }
@@ -130,6 +129,4 @@ class ModuleRegistry {
     public static function deactivate(string $name) {
         ModuleRegistry::toggleState($name, false);
     }
-
-    
-    }
+}
