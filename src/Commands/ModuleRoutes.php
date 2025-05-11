@@ -5,6 +5,7 @@ namespace Rahpt\Ci4Modules\Commands;
 use CodeIgniter\CLI\BaseCommand;
 use CodeIgniter\CLI\CLI;
 use Rahpt\Ci4Modules\Helpers\ModuleHelper;
+use Rahpt\Ci4Modules\Helpers\SubModuleHelper;
 
 class ModuleRoutes extends BaseCommand {
 
@@ -19,22 +20,18 @@ class ModuleRoutes extends BaseCommand {
             return;
         }
         $module = ucfirst($params[0]);
-
-        // Main Module Route
-        ModuleHelper::CreateRoute($module);
+        $routeFile = APPPATH . "Modules/{$module}/Config/Routes.php";
+        if (!file_exists($routeFile)) {
+            ModuleHelper::CreateRoute($module);
+        }
+        
         if (count($params) == 1) {
             // Cria apenas o Modulo Pai
             return;
         }
 
-        if (count($params) < 3) {
-            CLI::error('Você deve informar o <Modulo> <SubModulo> <Label>.');
-            CLI::write('Exemplo: spark module:routes Artigo "Blog"', 'yellow');
-            return;
-        }
-        $subModule = ucfirst($parasm[1]);
-        $label = $params[2];
+        $subModule = ucfirst($params[1]);
 
-        ModuleHelper::CreateSubRoute($module, $subModule, $label);
+        SubModuleHelper::CreateRoute($module, $subModule);
     }
 }

@@ -16,20 +16,23 @@ class ModuleInit extends BaseCommand {
     protected $usage = 'module:init <NomeModulo> [Label]';
 
     public function run(array $params) {
-        dd($params);
         // Label igual ao Modulo
         if (count($params) == 1) {
             $params[] = $params[0];
         }
 
-        if (count($params) < 2) {
-            CLI::error('Você deve informar o nome do módulo (ex: Admin) e sua Label (ex: "Admin 1")');
-            return;
+        if (count($params) == 2) {
+            [$module, $label] = $params;
+            $this->createModule($module, $label);
         }
 
-        [$module, $label] = $params;
-        // $entityLower = strtolower($label);
+        if (count($params) == 3) {
+            [$module, $subMoodule, $label] = $params;
+            $this->createSubModule($module, $submodule, $label);
+        }
+    }
 
+    public function createModule($module, $label) {
         CLI::write("📦 Criando módulo '{$label} ({$module})'...", 'blue');
         $modulePath = ucfirst($module);
         $controllersPath = TemplateHelper::ModuleCreateFolder($modulePath, 'Controllers');
@@ -51,13 +54,62 @@ class ModuleInit extends BaseCommand {
         /*
           TemplateHelper::updateModulesJson($module, $label);
 
-          // 4) Actualiza modules.json
-          ModuleRegistry::put($module, [
-          'active' => true,
-          'version' => '0.1.0',
-          'entities' => ModuleRegistry::discoverEntities($name),
-          ]);
          */
+
+        // 4. Actualiza modules.json  
+
+        $data = [
+            'active' => true,
+            'label' => $label,
+            'path' => "app/Modules/{$modulePath}",
+            'routePrefix' => strtolower($module),
+            'version' => '0.1.0',
+            'createdAt' => date(DATE_ATOM),
+        ];
+
+        // 2) gravar/actualizar modules.json
+        ModuleRegistry::put($module, $data);
+
+        CLI::write("✔ Módulo {$module} criado com sucesso!", 'green');
+    }
+
+    public function createSubModule($module, $subModule, $label) {
+        CLI::write("📦 Criando módulo '{$label} ({$module})'...", 'blue');
+        $modulePath = ucfirst($module);
+        $controllersPath = TemplateHelper::ModuleCreateFolder($modulePath, 'Controllers');
+
+        TemplateHelper::ModuleCreateFolder($module, 'Models');
+        TemplateHelper::ModuleCreateFolder($module, 'Database/Migrations');
+        TemplateHelper::ModuleCreateFolder($module, 'Database/Seeds');
+        $viewsPath = TemplateHelper::ModuleCreateFolder($modulePath, 'Views');
+
+        // 2. Gera arquivos usando os outros comandos
+        SubModuleHelper::CreateRoute($module, $subMoodule);
+        ModuleHelper::CreateController($module, $controllersPath);
+        ModuleHelper::CreateViewDashboard($module, $viewsPath);
+        // $this->call('make:module-views', [$label, $module]);
+        // $this->call('make:module-model', [$label, $module]);
+        // $this->call('make:module-seeder', [$label, $module]);
+        // $this->call('make:module-migration', [$label, $module]);
+        // Atualizar o modules.JSON
+        /*
+          TemplateHelper::updateModulesJson($module, $label);
+
+         */
+
+        // 4. Actualiza modules.json  
+
+        $data = [
+            'active' => true,
+            'label' => $label,
+            'path' => "app/Modules/{$modulePath}",
+            'routePrefix' => strtolower($module),
+            'version' => '0.1.0',
+            'createdAt' => date(DATE_ATOM),
+        ];
+
+        // 2) gravar/actualizar modules.json
+        ModuleRegistry::put($module, $data);
 
         CLI::write("✔ Módulo {$module} criado com sucesso!", 'green');
     }
