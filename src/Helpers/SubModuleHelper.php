@@ -53,9 +53,6 @@ class SubModuleHelper {
             return;
         }
 
-
-
-
         // 3. Salva o arquivo
         file_put_contents($fileRoute, $original);
         CLI::write("Rota Secundária adicionada com sucesso em Modules/{$module}/Config/Routes.php", 'green');
