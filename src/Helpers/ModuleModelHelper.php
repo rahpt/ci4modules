@@ -8,17 +8,19 @@ use Rahpt\Ci4Modules\Helpers\ModuleTableUtils;
 class ModuleModelHelper {
 
     // ROUTES
-    public static function CreateModel(string $module, string $tableName) {
+    public static function CreateModel(string $module, string $tableName, bool $tableExists = true) {
         $className = ucfirst($tableName) . 'Model';
         $fieldsArray = ModuleTableUtils::getFieldsFromTable($tableName);
         $fields = "'" . implode("', '", $fieldsArray) . "'";
+        $validationRulesIdent = "''";
+        
+        if ($tableExists && ModuleTableUtils::tableExists($tableName)) {
+            $validationRulesArray = ModuleTableUtils::getValidationRulesFromTable($tableName);
 
-        $validationRulesArray = ModuleTableUtils::getValidationRulesFromTable($tableName);
-
-        // Gera a string PHP formatada
-        $validationRules = var_export($validationRulesArray, true);
-        $validationRulesIdent = preg_replace('/^/m', '    ', $validationRules); // Identação bonita
-
+            // Gera a string PHP formatada
+            $validationRules = var_export($validationRulesArray, true);
+            $validationRulesIdent = preg_replace('/^/m', '    ', $validationRules); // Identação bonita
+        }
         $templatePath = __DIR__ . '/../Templates/Model.tpl';
         $content = TemplateHelper::generateContentFromTemplate(
                 $templatePath,

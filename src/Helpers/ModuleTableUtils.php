@@ -31,6 +31,11 @@ class ModuleTableUtils {
         }
     }
 
+    public static function tableExists(string $tableName): bool {
+        $db = \Config\Database::connect();
+        return $db->tableExists($tableName);
+    }
+
     public static function getValidationRulesFromTable(string $tableName): array {
         $db = \Config\Database::connect();
         $fields = $db->getFieldData($tableName);

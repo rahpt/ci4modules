@@ -76,18 +76,20 @@ class ModuleMigrationHelper {
     }
 
     // Migration
-    public static function CreateMigration(string $module, string $tableName) {
+    public static function CreateMigration(string $module, string $tableName):bool {
 
         $db = Database::connect();
+        $tableExists = false;
 
         // CheckTableExists
-        if (!$db->tableExists($tableName)) {
+        if (!ModuleTableUtils::tableExists($tableName)) {
             CLI::error("A tabela '{$tableName}' não existe.");
             CLI::write("Utilizando template vazio.", 'yellow');
 
             $template = ModuleMigrationHelper::getContentEmpty($module, $tableName);
         } else {
             $template = ModuleMigrationHelper::getContentFields($module, $tableName);
+            $tableExists = true;
         }
 
         $filePath = TemplateHelper::ModuleCreateFolder($module, 'Database\Migrations');
@@ -96,5 +98,6 @@ class ModuleMigrationHelper {
 
         file_put_contents($filePath . $fileName, $template);
         CLI::write("Migration criada: Modules/{$module}/Database/Migrations/{$fileName}", 'green');
+        return $tableExists;
     }
 }

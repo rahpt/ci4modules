@@ -9,24 +9,27 @@ use Config\Database;
 class ModuleSeederHelper {
 
     // Migration
-    public static function CreateSeeder(string $module, string $tableName) {
+    public static function CreateSeeder(string $module, string $tableName, bool $tableExists = true) {
 
-        $db = Database::connect();
+        $fieldsArray = [];
+        $result = [];
+        $fields = "''";
 
-        $fieldsArray = ModuleTableUtils::getFieldsFromTable($tableName);
-        $fields = "['" . implode("', '", $fieldsArray) . "']";
+        if ($tableExists) {
+            if (!ModuleTableUtils::tableExists($tableName)) {
+                CLI::error("A tabela '{$tableName}' não existe.");
+                return;
+            }
 
-        $db = Database::connect();
+            $fieldsArray = ModuleTableUtils::getFieldsFromTable($tableName);
+            $fields = "['" . implode("', '", $fieldsArray) . "']";
+            $db = Database::connect();
+            $builder = $db->table($tableName);
+            $limit = 100;
 
-        if (!$db->tableExists($tableName)) {
-            CLI::error("A tabela '{$tableName}' não existe.");
-            return;
+            $result = $builder->limit($limit)->get()->getResultArray();
         }
 
-        $builder = $db->table($tableName);
-        $limit = 100;
-
-        $result = $builder->limit($limit)->get()->getResultArray();
         if (empty($result)) {
             CLI::error("A tabela '{$tableName}' não possui dados para exportar.");
             CLI::write('O arquivo será criado sem informações!', 'yellow');
@@ -35,7 +38,7 @@ class ModuleSeederHelper {
         $dataExport = ModuleSeederHelper::compactDataExport($result, $fieldsArray);
 
         $templatePath = __DIR__ . '/../Templates/Seeder.tpl';
-        
+
         $content = TemplateHelper::generateContentFromTemplate(
                 $templatePath,
                 [

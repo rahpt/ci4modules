@@ -19,19 +19,20 @@ class ModuleHelper {
         return ModuleRoutes::appendSubmoduleRoutes($modulo, $submodulo);
     }
 
+    // DATABASE
     public static function CreateMigration(string $module, string $tableName) {
         return ModuleMigrationHelper::CreateMigration($module, $tableName);
     }
 
-    public static function CreateSeeder(string $module, string $tableName)
-    {
-      return ModuleSeederHelper::CreateSeeder($module, $tableName); 
+    public static function CreateSeeder(string $module, string $tableName, bool $tableExists) {
+        return ModuleSeederHelper::CreateSeeder($module, $tableName, $tableExists);
     }
 
-    public static function CreateModel(string $module, string $tableName)
-    {
-      return ModuleModelHelper::CreateModel($module, $tableName); 
+    // MODELS
+    public static function CreateModel(string $module, string $tableName) {
+        return ModuleModelHelper::CreateModel($module, $tableName);
     }
+
     // CONTROLLERS
     // Main Controller
     public static function CreateController(string $module, string $filePath): void {

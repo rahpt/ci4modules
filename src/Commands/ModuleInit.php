@@ -7,6 +7,7 @@ use CodeIgniter\CLI\CLI;
 use Rahpt\Ci4Modules\Helpers\TemplateHelper;
 use Rahpt\Ci4Modules\Helpers\ModuleRegistry;
 use Rahpt\Ci4Modules\Helpers\ModuleHelper;
+use Rahpt\Ci4Modules\Helpers\ModuleSetupHelper;
 
 class ModuleInit extends BaseCommand {
 
@@ -16,6 +17,9 @@ class ModuleInit extends BaseCommand {
     protected $usage = 'module:init <NomeModulo> [Label]';
 
     public function run(array $params) {
+        if (count($params) == 0) {
+            CLI::error("Um nome de módulo precisa ser indicado!");
+        }
         // Label igual ao Modulo
         if (count($params) == 1) {
             $params[] = $params[0];
@@ -33,6 +37,11 @@ class ModuleInit extends BaseCommand {
     }
 
     public function createModule($module, $label): void {
+        if (!ModuleSetuphelper::isPatched()) {
+            CLI::write("📦 Aplicando Patch de Modulos CI4 ...", 'blue');
+            ModuleSetupHelper::Setup();
+        }
+
         CLI::write("📦 Criando módulo '{$label} ({$module})'...", 'blue');
         $modulePath = ucfirst($module);
         $tableName = strtolower($module);
@@ -47,9 +56,10 @@ class ModuleInit extends BaseCommand {
         ModuleHelper::CreateRoute($module);
         ModuleHelper::CreateController($module, $controllersPath);
         ModuleHelper::CreateViewDashboard($module, $viewsPath);
-        ModuleHelper::CreateMigration($module, $tableName);
-        ModuleHelper::CreateSeeder($module, $tableName);
-        ModuleHelper::CreateModel($module, $tableName);
+        $tableExists = ModuleHelper::CreateMigration($module, $tableName);
+            ModuleHelper::CreateSeeder($module, $tableName, $tableExists);
+        
+        ModuleHelper::CreateModel($module, $tableName, $tableExists);
         // $this->call('make:module-views', [$label, $module]);
         // Atualizar o modules.JSON
         /*
