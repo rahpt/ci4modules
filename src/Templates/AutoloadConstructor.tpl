@@ -1,5 +1,5 @@
 
-    // --- modules-autoload (injcted by module:setup) ---
+    // --- __autoload_marker__ (injected by module:setup) ---
     public function __construct()
     {
         parent::__construct();

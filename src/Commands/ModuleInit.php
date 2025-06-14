@@ -7,6 +7,7 @@ use CodeIgniter\CLI\CLI;
 use Rahpt\Ci4Modules\Helpers\TemplateHelper;
 use Rahpt\Ci4Modules\Helpers\ModuleRegistry;
 use Rahpt\Ci4Modules\Helpers\ModuleHelper;
+use Rahpt\Ci4Modules\Helpers\ModuleSetupHelper;
 
 class ModuleInit extends BaseCommand {
 
@@ -16,6 +17,9 @@ class ModuleInit extends BaseCommand {
     protected $usage = 'module:init <NomeModulo> [Label]';
 
     public function run(array $params) {
+        if (count($params) == 0) {
+            CLI::error("Um nome de módulo precisa ser indicado!");
+        }
         // Label igual ao Modulo
         if (count($params) == 1) {
             $params[] = $params[0];
@@ -27,55 +31,20 @@ class ModuleInit extends BaseCommand {
         }
 
         if (count($params) == 3) {
-            [$module, $subMoodule, $label] = $params;
-            $this->createSubModule($module, $submodule, $label);
+            [$module, $subModule, $label] = $params;
+            $this->createSubModule($module, $subModule, $label);
         }
     }
 
-    public function createModule($module, $label) {
+    public function createModule($module, $label): void {
+        if (!ModuleSetuphelper::isPatched()) {
+            CLI::write("📦 Aplicando Patch de Modulos CI4 ...", 'blue');
+            ModuleSetupHelper::Setup();
+        }
+
         CLI::write("📦 Criando módulo '{$label} ({$module})'...", 'blue');
         $modulePath = ucfirst($module);
-        $controllersPath = TemplateHelper::ModuleCreateFolder($modulePath, 'Controllers');
-
-        TemplateHelper::ModuleCreateFolder($module, 'Models');
-        // TemplateHelper::ModuleCreateFolder($module, 'Database/Migrations');
-        // TemplateHelper::ModuleCreateFolder($module, 'Database/Seeds');
-        $viewsPath = TemplateHelper::ModuleCreateFolder($modulePath, 'Views');
-
-        // 2. Gera arquivos usando os outros comandos
-        ModuleHelper::CreateRoute($module);
-        ModuleHelper::CreateController($module, $controllersPath);
-        ModuleHelper::CreateViewDashboard($module, $viewsPath);
-        // $this->call('make:module-views', [$label, $module]);
-        // $this->call('make:module-model', [$label, $module]);
-        // $this->call('make:module-seeder', [$label, $module]);
-        // $this->call('make:module-migration', [$label, $module]);
-        // Atualizar o modules.JSON
-        /*
-          TemplateHelper::updateModulesJson($module, $label);
-
-         */
-
-        // 4. Actualiza modules.json  
-
-        $data = [
-            'active' => true,
-            'label' => $label,
-            'path' => "app/Modules/{$modulePath}",
-            'routePrefix' => strtolower($module),
-            'version' => '0.1.0',
-            'createdAt' => date(DATE_ATOM),
-        ];
-
-        // 2) gravar/actualizar modules.json
-        ModuleRegistry::put($module, $data);
-
-        CLI::write("✔ Módulo {$module} criado com sucesso!", 'green');
-    }
-
-    public function createSubModule($module, $subModule, $label) {
-        CLI::write("📦 Criando módulo '{$label} ({$module})'...", 'blue');
-        $modulePath = ucfirst($module);
+        $tableName = strtolower($module);
         $controllersPath = TemplateHelper::ModuleCreateFolder($modulePath, 'Controllers');
 
         TemplateHelper::ModuleCreateFolder($module, 'Models');
@@ -84,13 +53,14 @@ class ModuleInit extends BaseCommand {
         $viewsPath = TemplateHelper::ModuleCreateFolder($modulePath, 'Views');
 
         // 2. Gera arquivos usando os outros comandos
-        SubModuleHelper::CreateRoute($module, $subMoodule);
+        ModuleHelper::CreateRoute($module);
         ModuleHelper::CreateController($module, $controllersPath);
         ModuleHelper::CreateViewDashboard($module, $viewsPath);
+        $tableExists = ModuleHelper::CreateMigration($module, $tableName);
+            ModuleHelper::CreateSeeder($module, $tableName, $tableExists);
+        
+        ModuleHelper::CreateModel($module, $tableName, $tableExists);
         // $this->call('make:module-views', [$label, $module]);
-        // $this->call('make:module-model', [$label, $module]);
-        // $this->call('make:module-seeder', [$label, $module]);
-        // $this->call('make:module-migration', [$label, $module]);
         // Atualizar o modules.JSON
         /*
           TemplateHelper::updateModulesJson($module, $label);
